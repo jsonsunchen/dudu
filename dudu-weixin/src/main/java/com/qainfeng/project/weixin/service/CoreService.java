@@ -1,11 +1,15 @@
 package com.qainfeng.project.weixin.service;
 
+import com.qainfeng.project.weixin.api.tuling.TuLingUtil;
 import com.qainfeng.project.weixin.bean.resp.Article;
 import com.qainfeng.project.weixin.bean.resp.NewsMessage;
 import com.qainfeng.project.weixin.bean.resp.TextMessage;
+import com.qainfeng.project.weixin.hitokoto.HitokotoUtil;
 import com.qainfeng.project.weixin.util.MessageUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,8 +18,10 @@ import java.util.Map;
 
 @Service
 public class CoreService {
-
-
+@Resource
+private TuLingUtil tuLingUtil;
+@Resource
+private HitokotoUtil hitokotoUtil;
 	/**
 	 * 处理微信发来的请求
 	 * 
@@ -42,7 +48,7 @@ public class CoreService {
 			TextMessage textMessage = new TextMessage();
 			textMessage.setToUserName(fromUserName);
 			textMessage.setFromUserName(toUserName);
-			textMessage.setCreateTime(new Date().getTime());
+			textMessage.setCreateTime(System.currentTimeMillis());
 			textMessage.setMsgType(MessageUtil.RESP_MESSAGE_TYPE_TEXT);
 			textMessage.setFuncFlag(0);
 			// 由于href属性值必须用双引号引起，这与字符串本身的双引号冲突，所以要转义
@@ -61,13 +67,13 @@ public class CoreService {
 			NewsMessage newsMessage = new NewsMessage();
 			newsMessage.setToUserName(fromUserName);
 			newsMessage.setFromUserName(toUserName);
-			newsMessage.setCreateTime(new Date().getTime());
+			newsMessage.setCreateTime(System.currentTimeMillis());
 			newsMessage.setMsgType(MessageUtil.RESP_MESSAGE_TYPE_NEWS);
 			newsMessage.setFuncFlag(0);
 
 			// 文本消息
 			if (msgType.equals(MessageUtil.REQ_MESSAGE_TYPE_TEXT)) {
-				respContent = "您发送的是文本消息！";
+				respContent = tuLingUtil.sendMessage(content);
 			}
 			// 图片消息
 			else if (msgType.equals(MessageUtil.REQ_MESSAGE_TYPE_IMAGE)) {
@@ -104,13 +110,17 @@ public class CoreService {
 					String eventKey = requestMap.get("EventKey");
 
 					if (eventKey.equals("11")) {
-						respContent = "菜单项被点击！";
+						respContent = "会议抢单被点击！";
 
-					}
+					}else if (eventKey.equals("31")){
+                        respContent = "联系我们被点击了";
+                    }else if(eventKey.equals("34")){
+                        respContent = hitokotoUtil.sendmsg();
+                    }
 					else if (eventKey.equals("70")) {
 
 						List<Article> articleList = new ArrayList<Article>();
-						
+
 						// 单图文消息
 						Article article = new Article();
 						article.setTitle("标题");
@@ -119,8 +129,8 @@ public class CoreService {
 								"图片");
 						article.setUrl("跳转连接");
 
-						
-						articleList.add(article);						
+
+						articleList.add(article);
 						// 设置图文消息个数
 						newsMessage.setArticleCount(articleList.size());
 						// 设置图文消息

@@ -43,7 +43,8 @@ public class WeixinUtil {
 			// 从上述SSLContext对象中得到SSLSocketFactory对象
 			SSLSocketFactory ssf = sslContext.getSocketFactory();
 
-			URL url = new URL(requestUrl);
+			//URL url = new URL(requestUrl);
+            URL url= new URL(null, requestUrl, new sun.net.www.protocol.https.Handler());
 			HttpsURLConnection httpUrlConn = (HttpsURLConnection) url.openConnection();
 			httpUrlConn.setSSLSocketFactory(ssf);
 
@@ -53,9 +54,9 @@ public class WeixinUtil {
 			// 设置请求方式（GET/POST）
 			httpUrlConn.setRequestMethod(requestMethod);
 
-			if ("GET".equalsIgnoreCase(requestMethod))
-				httpUrlConn.connect();
-
+			if ("GET".equalsIgnoreCase(requestMethod)) {
+                httpUrlConn.connect();
+            }
 			// 当有数据需要提交时
 			if (null != outputStr) {
 				OutputStream outputStream = httpUrlConn.getOutputStream();
